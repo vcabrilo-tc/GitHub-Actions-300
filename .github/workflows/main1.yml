@@ -24,7 +24,7 @@ jobs:
   Test-job1:
     runs-on: ubuntu-latest
     name: Test1
-    needs: Build-job
+    needs: Build-Job
     if: github.rev != 'refs/heads/production'
     steps:
       - uses: action/checkout@v1
@@ -34,3 +34,33 @@ jobs:
           node-version:  ${{ matrix.node-version }}
       - run: npm install --global mocha
       - run: npm test
+  Test-job3:
+    runs-on: ubuntu-latest
+    needs: Build-Job
+    if: github.ref != 'refs/heads/production'
+    name: Test3
+    steps:
+      - uses: actions/checkout@v1
+      - name: Test3
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+      - run: npm install --global mocha
+      - run: npm install unit.js
+      - run: npm test
+      
+  Deploy-Job:
+    runs-on: ubuntu-latest
+    needs: [Test-job1, Test-job3]
+    name: Deployment
+    steps:
+      - uses: actions/checkout@v1
+      - name: Test3
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+      - run: npm install -g surge
+      - run: surge ./ ${{secrets.SURGE_DOMAIN }} --token ${{ secrets.SURGE_TOKEN }}
+      
+
+
